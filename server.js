@@ -88,7 +88,7 @@ function getEmployees() {
     INNER JOIN roles r ON e.role_id = r.id 
     INNER JOIN departments d ON r.department_id = d.id 
     LEFT JOIN employees m ON e.manager_id = m.id;`,
-    function (err, results, fields) {
+    function (err, results) {
     if(err) throw err;
     console.log(cTable.getTable(results));
     selectFunction();
@@ -117,7 +117,7 @@ function addEmployee(){
       name: 'name',
       message: 'What is this employees role?',
       choices: [
-       //show array of roles
+       connection.query
       ]
     }
   ])
@@ -148,33 +148,52 @@ function viewAllRoles(){
 function addRole(){
   console.log('Adding Role!');
   //logic here
-  inquirer.prompt([
-    {
-      type: 'input',
-      name: 'newRole',
-      message: 'What role would you like to add?'
-    },
-    {
-      type: 'list',
-      name: 'newRolesDepartment',
-      message: 'What department is this role in?',
-      choices: [
-        //show array of departments
-      ]
-    },
-    {
-      type: 'input',
-      name: 'newRolesSalary',
-      message: 'What is the salary of this role? $'
-    }
-  ])
-  .then(answer => {
-    //add role to roles table
-    //add role to the department
-    //add salary to role
+  connection.query(
+    `SELECT * FROM departments`,
+    function (err, results) {
+    if(err) throw err;
+    var departments = [];
+    results.forEach(dept => {
+      departments.push(dept.name);
+    });
+    inquirer.prompt([
+      {
+        type: 'input',
+        name: 'newRole',
+        message: 'What role would you like to add?'
+      },
+      {
+        type: 'list',
+        name: 'newRolesDepartment',
+        message: 'What department is this role in?',
+        choices: departments
+      },
+      {
+        type: 'input',
+        name: 'newRolesSalary',
+        message: 'What is the salary of this role? $'
+      }
+    ])
+    .then(answer => {
+      const {newRole} = answer;
+      const {newRolesDepartment} = answer;
+      const {newRolesSalary} = answer;
+      var dept_id = -1;
+      results.forEach(dept => {
+        if(dept.name == newRolesDepartment){
+          dept_id = dept.id;
+        }
+      });
+      connection.query(
+        `insert into roles (title, salary, department_id)
+        values ("${newRole}", ${newRolesSalary}, ${dept_id});`,
+        function (err, results) {
+        if(err) throw err;
+        selectFunction();
+      });
+      
+    });
   });
-
-  selectFunction();
 }
 
 //=============================================================
@@ -183,7 +202,7 @@ function addRole(){
 function viewAllDepartments(){
   connection.query(
     `SELECT departments.name FROM departments`,
-    function (err, results, fields) {
+    function (err, results) {
     if(err) throw err;
     console.log(cTable.getTable(results));
     selectFunction();
@@ -204,10 +223,15 @@ function addDepartment(){
     }
   ])
   .then(answer => {
-    //add to departments
+    const {newDepartment} = answer;
+    connection.query(
+      `insert into departments (name)
+      values ("${newDepartment}");`,
+      function (err, results) {
+      if(err) throw err;
+      selectFunction();
+    });
   });
-
-  selectFunction();
 }
 
 //=============================================================
