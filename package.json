@@ -1,0 +1,26 @@
+{
+  "name": "employeetracker",
+  "version": "1.0.0",
+  "description": "App to show/edit/log employees in a given database.",
+  "main": "server.js",
+  "dependencies": {
+    "console.table": "^0.10.0",
+    "inquirer": "^7.3.3",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codymu45/employeeTracker.git"
+  },
+  "author": "Cody Mullen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/codymu45/employeeTracker/issues"
+  },
+  "homepage": "https://github.com/codymu45/employeeTracker#readme"
+}
