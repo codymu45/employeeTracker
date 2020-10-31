@@ -101,6 +101,14 @@ function getEmployees() {
 function addEmployee(){
   console.log('Adding Employee!');
   //logic here
+  connection.query(
+    `SELECT * FROM roles`,
+    function (err, results) {
+    if(err) throw err;
+    var roles = [];
+    results.forEach(job => {
+      roles.push(job.title);
+    });
   inquirer.prompt([
     {
       type: 'input',
@@ -114,19 +122,33 @@ function addEmployee(){
     },
     {
       type: 'list',
-      name: 'name',
+      name: 'newEmployeesRole',
       message: 'What is this employees role?',
-      choices: [
-       connection.query
-      ]
+      choices: roles
     }
   ])
   .then(answer => {
     //add employee to employee table
     //set employees role id
+    const {first_name} = answer;
+    const {last_name} = answer;
+    const {newEmployeesRole} = answer;
+    var role_id = -1;
+    results.forEach(role => {
+      if(role.title == newEmployeesRole){
+        role_id = role.id;
+      }
+    });
+      connection.query(
+        `insert into employees (first_name, last_name, role_id)
+        values ("${first_name}", "${last_name}", ${role_id});`,
+        function (err, results) {
+        if(err) throw err;
+        selectFunction();
+      });
+  });
   });
 
-  selectFunction();
 }
 
 //=============================================================
@@ -240,42 +262,63 @@ function addDepartment(){
 function updateEmployeeRoles(){
   console.log('updating Employee Roles!');
   //logic here
-  inquirer.prompt([
-    {
-      type: 'list',
-      name: 'selectedEmployee',
-      message: 'Which employee would you like to update?',
-      choices: [
-        //show array of employees
-      ]
-    },
-    {
-      type: 'list',
-      name: 'chosenField',
-      message: 'Select a new role for this employee',
-      choices: [
-        //show array of roles
-      ]
-    }
-  ])
-  .then(answer => {
-    const {field} = answer;
-    switch(field) {
-      case 'First Name':
-        //enter new first name      
-        break;
-      case 'Last Name':
-        //enter new last name     
-        break;
-      case 'Role':
-        //select new role     
-        break;
-      
-    }
+  connection.query(
+    `SELECT * FROM roles`,
+    function (err, results) {
+    if(err) throw err;
+    var roles = [];
+    results.forEach(job => {
+      roles.push(job.title);
+    });
+
+    connection.query(
+      `SELECT * FROM employees`,
+      function (error, data) {
+      if(error) throw error;
+      var employees = [];
+      data.forEach(person => {
+        employees.push(person.first_name + ' ' + person.last_name);
+      });
+      inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedEmployee',
+          message: 'Which employee would you like to update?',
+          choices: employees
+        },
+        {
+          type: 'list',
+          name: 'chosenField',
+          message: 'Select a new role for this employee',
+          choices: roles
+        }
+      ])
+      .then(answer => {
+        const {selectedEmployee} = answer;
+        const {chosenField} = answer;
+        var role_id = -1;
+        results.forEach(role => {
+          if(role.title == chosenField){
+            role_id = role.id;
+          }
+        });
+        var emp_id = -1;
+        data.forEach(emp => {
+          if((emp.first_name + ' ' + emp.last_name) == selectedEmployee){
+            emp_id = emp.id;
+          }
+        });
+        connection.query(
+          `UPDATE employees 
+          SET role_id = ${role_id}
+          WHERE id = ${emp_id};`,
+          function (er, response) {
+          if(er) throw er;
+          selectFunction();
+        });
+        });
+    });
   });
-
-
-  selectFunction();
 }
 
 //=============================================================
